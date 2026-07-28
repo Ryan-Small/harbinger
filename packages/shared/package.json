@@ -1,0 +1,17 @@
+{
+    "name": "@harbinger/shared",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "typecheck": "tsc"
+    },
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "dependencies": {
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "typescript": "^7.0.2"
+    }
+}
