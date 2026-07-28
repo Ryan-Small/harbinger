@@ -1,0 +1,52 @@
+# Verifies that the code is suitable for integration.
+name: Continuous Integration
+
+on:
+    push:
+        branches: ["**"] # the filter exists to exclude tags; branches get feedback before any PR opens
+    pull_request:
+
+concurrency:
+    # A newer push cancels the in-flight run for its branch. head_ref and
+    # ref_name both resolve to the bare branch name, keeping the push and
+    # pull_request events fired by one commit in a single group — otherwise
+    # every PR commit would run the gate twice. Cancellation is safe only
+    # while this workflow purely verifies; a deploy job on main must queue
+    # instead.
+    group: ci-${{ github.head_ref || github.ref_name }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    gate:
+        name: Format, typecheck, test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+              # Intentionally no version input — resolving pnpm from the
+              # packageManager field means CI and local installs can never
+              # disagree about the toolchain.
+
+            - name: Set up Node
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Check formatting
+              run: pnpm format:check
+
+            - name: Typecheck
+              run: pnpm typecheck
+
+            - name: Test
+              run: pnpm test
