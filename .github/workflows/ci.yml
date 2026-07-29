@@ -1,18 +1,16 @@
 # Verifies that the code is suitable for integration.
 name: Continuous Integration
 
+# PRs carry the required check that gates merging; the push trigger gives
+# each merged commit its own verification record on main.
 on:
-    push:
-        branches: ["**"] # the filter exists to exclude tags; branches get feedback before any PR opens
     pull_request:
+    push:
+        branches: [main]
 
 concurrency:
-    # A newer push cancels the in-flight run for its branch. head_ref and
-    # ref_name both resolve to the bare branch name, keeping the push and
-    # pull_request events fired by one commit in a single group — otherwise
-    # every PR commit would run the gate twice. Cancellation is safe only
-    # while this workflow purely verifies; a deploy job on main must queue
-    # instead.
+    # A newer push cancels the stale in-flight run for its branch.
+    # Cancellation is safe only while this workflow purely verifies.
     group: ci-${{ github.head_ref || github.ref_name }}
     cancel-in-progress: true
 

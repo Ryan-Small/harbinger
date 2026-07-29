@@ -1,0 +1,57 @@
+# Ships every merge to main: the ruleset only lets commits reach main
+# through a PR whose up-to-date merge preview passed the gate, so a push
+# to main is by construction a release of verified code.
+
+name: Prod Deploy
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch: # break-glass redeploy of main without a new commit
+
+# Deploys queue rather than cancel: interrupting a half-applied
+# CloudFormation update is worse than waiting for it.
+concurrency:
+    group: deploy-production
+    cancel-in-progress: false
+
+permissions:
+    id-token: write # mint the OIDC token that assumes the deploy role
+    contents: read
+
+jobs:
+    deploy:
+        name: Deploy harbinger-prod
+        # arm64 runner builds the arm64 image natively — no QEMU tax.
+        runs-on: ubuntu-24.04-arm
+        environment:
+            name: production
+            url: https://api.harbinger.sh
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+            - name: Set up Node
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Authenticate to AWS
+              uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+              with:
+                  role-to-assume: arn:aws:iam::010928192241:role/harbinger-github-deploy
+                  aws-region: us-east-1
+
+            - name: Deploy
+              working-directory: infra
+              run: pnpm exec cdk deploy 'harbinger-prod/*' --require-approval never
+
+            - name: Smoke test
+              run: curl -fsS --retry 3 --retry-delay 5 https://api.harbinger.sh/status | grep -q serverTime
