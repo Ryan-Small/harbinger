@@ -19,4 +19,5 @@ export const envConfigsProd: EnvironmentConfig = {
         minAcu: 0,
         maxAcu: 2,
     },
+    domainName: "harbinger.sh",
 };

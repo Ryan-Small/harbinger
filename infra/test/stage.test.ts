@@ -49,6 +49,30 @@ test("health checks hit the real route, not the ALB default", () => {
     });
 });
 
+test("api serves https for the configured domain and redirects http", () => {
+    app.hasResourceProperties("AWS::CertificateManager::Certificate", {
+        DomainName: "api.harbinger.sh",
+        ValidationMethod: "DNS",
+    });
+    app.hasResourceProperties("AWS::ElasticLoadBalancingV2::Listener", {
+        Port: 443,
+        Protocol: "HTTPS",
+    });
+    app.hasResourceProperties("AWS::ElasticLoadBalancingV2::Listener", {
+        Port: 80,
+        DefaultActions: [
+            {
+                Type: "redirect",
+                RedirectConfig: {
+                    Protocol: "HTTPS",
+                    Port: "443",
+                    StatusCode: "HTTP_301",
+                },
+            },
+        ],
+    });
+});
+
 test("logical IDs of stateful resources remain static", () => {
     // CloudFormation keys resource identity on these exact IDs: if one
     // changes, the next deploy replaces the resource — for the database,

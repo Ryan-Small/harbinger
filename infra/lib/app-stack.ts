@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { Stack, type StackProps } from "aws-cdk-lib";
 import {
+    aws_certificatemanager as acm,
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_ecs_patterns as ecsPatterns,
@@ -25,6 +26,15 @@ export class AppStack extends Stack {
         const { config, vpc } = props;
 
         const cluster = new ecs.Cluster(this, "Cluster", { vpc });
+
+        // DNS stays at Cloudflare, so validation is a CNAME added there by
+        // hand. The record persists, which lets ACM renew unattended.
+        const certificate = config.domainName
+            ? new acm.Certificate(this, "ApiCertificate", {
+                  domainName: `api.${config.domainName}`,
+                  validation: acm.CertificateValidation.fromDns(),
+              })
+            : undefined;
 
         const service = new ecsPatterns.ApplicationLoadBalancedFargateService(
             this,
@@ -53,6 +63,7 @@ export class AppStack extends Stack {
                     containerPort: 3000,
                 },
                 publicLoadBalancer: true,
+                ...(certificate && { certificate, redirectHTTP: true }),
                 // A deploy that cannot stabilize rolls itself back instead of
                 // flapping until a human notices.
                 circuitBreaker: { rollback: true },
