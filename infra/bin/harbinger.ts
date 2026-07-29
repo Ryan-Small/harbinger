@@ -1,5 +1,6 @@
 import { App } from "aws-cdk-lib";
 import { envConfigsProd } from "../config/prod";
+import { CiStack } from "../lib/ci-stack";
 import { HarbingerStage } from "../lib/stage";
 
 // Every environment is declared here so that any commit synthesizes all
@@ -9,6 +10,14 @@ const app = new App();
 
 new HarbingerStage(app, "harbinger-prod", {
     config: envConfigsProd,
+    env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: envConfigsProd.region,
+    },
+});
+
+new CiStack(app, "harbinger-ci", {
+    repository: "Ryan-Small/harbinger",
     env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: envConfigsProd.region,
