@@ -46,7 +46,7 @@ export class FoundationStack extends Stack {
 
         this.database = new rds.DatabaseCluster(this, "Database", {
             engine: rds.DatabaseClusterEngine.auroraPostgres({
-                version: rds.AuroraPostgresEngineVersion.VER_16_6,
+                version: rds.AuroraPostgresEngineVersion.VER_17_9,
             }),
             writer: rds.ClusterInstance.serverlessV2("Writer"),
             serverlessV2MinCapacity: config.database.minAcu,
