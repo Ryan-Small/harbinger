@@ -17,7 +17,7 @@ new HarbingerStage(app, "harbinger-prod", {
 });
 
 new CiStack(app, "harbinger-ci", {
-    repository: "Ryan-Small/harbinger",
+    repository: "Ryan-Small@13103653/harbinger@1315467991",
     env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: envConfigsProd.region,
