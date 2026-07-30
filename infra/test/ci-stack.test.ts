@@ -4,7 +4,9 @@ import { test } from "vitest";
 import { CiStack } from "../lib/ci-stack";
 
 const template = Template.fromStack(
-    new CiStack(new App(), "test-ci", { repository: "Ryan-Small/harbinger" }),
+    new CiStack(new App(), "test-ci", {
+        repository: "Ryan-Small@13103653/harbinger@1315467991",
+    }),
 );
 
 test("deploy role is assumable only by this repo's production environment", () => {
@@ -21,7 +23,7 @@ test("deploy role is assumable only by this repo's production environment", () =
                             "token.actions.githubusercontent.com:aud":
                                 "sts.amazonaws.com",
                             "token.actions.githubusercontent.com:sub":
-                                "repo:Ryan-Small/harbinger:environment:production",
+                                "repo:Ryan-Small@13103653/harbinger@1315467991:environment:production",
                         },
                     },
                 }),

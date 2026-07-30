@@ -3,7 +3,13 @@ import { aws_iam as iam } from "aws-cdk-lib";
 import type { Construct } from "constructs";
 
 export interface CiStackProps extends StackProps {
-    /** GitHub repository allowed to deploy, as "owner/name". */
+    /**
+     * GitHub repository allowed to deploy, in ID-qualified form
+     * ("owner@ownerId/name@repoId"). GitHub stamps these IDs into the
+     * token's sub claim so a deleted-and-recreated repo of the same name
+     * cannot inherit this trust. Source of truth:
+     * `gh api repos/<owner>/<name>/actions/oidc/customization/sub`.
+     */
     repository: string;
 }
 
