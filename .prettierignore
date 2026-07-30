@@ -1,3 +1,5 @@
 pnpm-lock.yaml
 cdk.context.json
+packages/sdk/openapi.json
+packages/sdk/src/schema.ts
 dist/
