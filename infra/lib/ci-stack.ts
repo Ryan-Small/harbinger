@@ -32,9 +32,11 @@ export class CiStack extends Stack {
                     StringEquals: {
                         "token.actions.githubusercontent.com:aud":
                             "sts.amazonaws.com",
-                        // Pinning sub to the main ref means a token minted for
-                        // any other repo, branch, or PR cannot assume this role.
-                        "token.actions.githubusercontent.com:sub": `repo:${props.repository}:ref:refs/heads/main`,
+                        // Environment-scoped jobs mint environment-form sub
+                        // claims (not ref-form). Which branches may deploy to
+                        // the production environment is enforced on the GitHub
+                        // side by the environment's deployment branch policy.
+                        "token.actions.githubusercontent.com:sub": `repo:${props.repository}:environment:production`,
                     },
                 },
             ),

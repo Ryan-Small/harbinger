@@ -7,7 +7,7 @@ const template = Template.fromStack(
     new CiStack(new App(), "test-ci", { repository: "Ryan-Small/harbinger" }),
 );
 
-test("deploy role is assumable only by this repo's main branch", () => {
+test("deploy role is assumable only by this repo's production environment", () => {
     // Without the sub condition, a token minted for ANY GitHub repository
     // could assume the role — this assertion is the security boundary.
     template.hasResourceProperties("AWS::IAM::Role", {
@@ -21,7 +21,7 @@ test("deploy role is assumable only by this repo's main branch", () => {
                             "token.actions.githubusercontent.com:aud":
                                 "sts.amazonaws.com",
                             "token.actions.githubusercontent.com:sub":
-                                "repo:Ryan-Small/harbinger:ref:refs/heads/main",
+                                "repo:Ryan-Small/harbinger:environment:production",
                         },
                     },
                 }),
