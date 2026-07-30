@@ -9,6 +9,7 @@ import { HarbingerStage } from "../lib/stage";
 const stage = new HarbingerStage(new App(), "Test", { config: envConfigsProd });
 const foundation = Template.fromStack(stage.foundation);
 const app = Template.fromStack(stage.app);
+const web = Template.fromStack(stage.web);
 
 test("exactly one NAT gateway — the deliberate cost/availability trade", () => {
     foundation.resourceCountIs("AWS::EC2::NatGateway", 1);
@@ -69,6 +70,50 @@ test("api serves https for the configured domain and redirects http", () => {
                     StatusCode: "HTTP_301",
                 },
             },
+        ],
+    });
+});
+
+test("the site bucket is private and only reachable through CloudFront", () => {
+    web.hasResourceProperties("AWS::S3::Bucket", {
+        PublicAccessBlockConfiguration: {
+            BlockPublicAcls: true,
+            BlockPublicPolicy: true,
+            IgnorePublicAcls: true,
+            RestrictPublicBuckets: true,
+        },
+    });
+    web.resourceCountIs("AWS::CloudFront::Distribution", 1);
+});
+
+test("the site serves the configured apex domain as a SPA", () => {
+    web.hasResourceProperties("AWS::CertificateManager::Certificate", {
+        DomainName: "harbinger.sh",
+        ValidationMethod: "DNS",
+    });
+    web.hasResourceProperties("AWS::CloudFront::Distribution", {
+        DistributionConfig: Match.objectLike({
+            Aliases: ["harbinger.sh"],
+            DefaultRootObject: "index.html",
+            CustomErrorResponses: [
+                Match.objectLike({
+                    ErrorCode: 403,
+                    ResponseCode: 200,
+                    ResponsePagePath: "/index.html",
+                }),
+            ],
+        }),
+    });
+});
+
+test("api tasks allow the site origin for credentialed CORS", () => {
+    app.hasResourceProperties("AWS::ECS::TaskDefinition", {
+        ContainerDefinitions: [
+            Match.objectLike({
+                Environment: Match.arrayWith([
+                    { Name: "CORS_ORIGINS", Value: "https://harbinger.sh" },
+                ]),
+            }),
         ],
     });
 });

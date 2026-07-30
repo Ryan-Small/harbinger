@@ -61,6 +61,11 @@ export class AppStack extends Stack {
                         },
                     ),
                     containerPort: 3000,
+                    ...(config.domainName && {
+                        environment: {
+                            CORS_ORIGINS: `https://${config.domainName}`,
+                        },
+                    }),
                 },
                 publicLoadBalancer: true,
                 ...(certificate && { certificate, redirectHTTP: true }),
