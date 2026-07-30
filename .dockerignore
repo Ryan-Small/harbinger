@@ -1,5 +1,11 @@
+# Everything excluded here is invisible to the image build AND to the
+# CDK asset hash — changes to these paths must not rebuild the image or
+# cycle the ECS service.
 **/node_modules
 **/dist
 **/cdk.out
+**/*.md
 .git
 .github
+docs
+infra
