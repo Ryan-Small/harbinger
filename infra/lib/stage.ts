@@ -3,6 +3,7 @@ import type { Construct } from "constructs";
 import type { EnvironmentConfig } from "../config/environment";
 import { FoundationStack } from "./foundation-stack";
 import { AppStack } from "./app-stack";
+import { WebStack } from "./web-stack";
 
 export interface HarbingerStageProps extends StageProps {
     config: EnvironmentConfig;
@@ -15,6 +16,7 @@ export interface HarbingerStageProps extends StageProps {
 export class HarbingerStage extends Stage {
     readonly foundation: FoundationStack;
     readonly app: AppStack;
+    readonly web: WebStack;
 
     constructor(scope: Construct, id: string, props: HarbingerStageProps) {
         super(scope, id, props);
@@ -28,5 +30,6 @@ export class HarbingerStage extends Stage {
             config,
             vpc: this.foundation.vpc,
         });
+        this.web = new WebStack(this, "web", { config });
     }
 }
